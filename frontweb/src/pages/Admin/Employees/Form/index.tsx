@@ -1,21 +1,17 @@
 
 import { AxiosRequestConfig } from 'axios';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useHistory, useParams } from 'react-router-dom';
+import { Controller, useForm } from 'react-hook-form';
+import { useHistory } from 'react-router-dom';
+import Select from 'react-select';
 import { toast } from 'react-toastify';
 import { Department } from 'types/department';
 import { Employee } from 'types/employee';
 import { requestBackend } from 'util/requests';
 import './styles.css';
 
-type UrlParams = {
-  employeeId: string;
-}
 
 const Form = () => {
-
-  const { employeeId } = useParams<UrlParams>();
 
   const history = useHistory();
 
@@ -24,10 +20,11 @@ const Form = () => {
   const {
     register,
     handleSubmit,
-    formState: {errors},
+    formState: { errors },
     setValue,
     control,
   } = useForm<Employee>();
+
 
   useEffect(() => {
     requestBackend({
@@ -40,7 +37,7 @@ const Form = () => {
 
   useEffect(() => {
     requestBackend({
-      url: `/employees/${employeeId}`,
+      url: `/employees/`,
       withCredentials: true
     }).then((response) => {
       const employee = response.data as Employee;
@@ -49,35 +46,35 @@ const Form = () => {
       setValue('email', employee.email);
       setValue('department', employee.department);
     });
-  }, [employeeId, setValue]);
+
+  }, [setValue]);
 
   const onSubmit = (formData: Employee) => {
     const data = {
       ...formData,
+
     };
 
     const config: AxiosRequestConfig = {
       method: 'POST',
-      url: `/employees`,
+      url: '/employees',
       data,
-      withCredentials: true
+      withCredentials: true,
     };
 
     requestBackend(config).then(() => {
       toast.info('Cadastrado com sucesso');
       history.push('/admin/employees');
     })
-    .catch(() => {
-      toast.error('Erro ao cadastrar funcionário');
-    });
+      .catch(() => {
+        toast.error('Erro ao cadastrar funcionário');
+      });
   };
-
 
 
   const handleCancel = () => {
     history.push('/admin/employees');
   };
-
   return (
     <div className="employee-crud-container">
       <div className="base-card employee-crud-form-card">
@@ -89,13 +86,14 @@ const Form = () => {
 
               <div className="margin-bottom-30">
                 <input
-                {...register('name',{
-                  required: 'Campo obrigatório',
-                })}
-                 type="text" 
-                  className={`form-control base-input is-invalid ${errors.name ? 'is-invalid' : ''}`}
+                  {...register('name', {
+                    required: 'Campo obrigatório',
+                  })}
+                  type="text"
+                  className={`form-control base-input ${errors.name ? 'is-invalid' : ''
+                    }`}
                   placeholder="Nome do funcionário"
-                  name='name'
+                  name="name"
                   data-testid="name"
                 />
                 <div className="invalid-feedback d-block">
@@ -104,24 +102,55 @@ const Form = () => {
               </div>
 
               <div className="margin-bottom-30">
-                <input 
-                {...register('email', {
-                  required: 'Campo obrigatório',
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Email inválido'
-                  },
-                })}
-                type="text"
-                  className={`form-control base-input ${errors.name ? 'is-invalid' : ''}`}
+                <input
+                  {...register('email', {
+                    required: 'Campo obrigatório',
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: 'Email inválido',
+                    },
+                  })}
+                  type="text"
+                  className={`form-control base-input ${errors.name ? 'is-invalid' : ''
+                    }`}
                   placeholder="Email do funcionário"
                   name="email"
                   data-testid="email"
                 />
                 <div className="invalid-feedback d-block">
-                  {errors.email?.message}                   
+                  {errors.email?.message}
+                </div>
+                <div className="invalid-feedback d-block">
+
                 </div>
               </div>
+
+              <div className="margin-bottom-30">
+                <label htmlFor='department' className="d-none">Departamento</label>
+                <Controller
+                  name="department"
+                  rules={{ required: true }}
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={selectCategories}
+                      classNamePrefix="product-crud-select"
+                      getOptionLabel={(department: Department) => department.name}
+                      getOptionValue={(department: Department) =>
+                        String(department.id)
+                      }
+                      inputId="department"
+                    />
+                  )}
+                />
+                {errors.department && (
+                  <div className="invalid-feedback d-block">
+                    Campo obrigatório
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
           <div className="employee-crud-buttons-container">

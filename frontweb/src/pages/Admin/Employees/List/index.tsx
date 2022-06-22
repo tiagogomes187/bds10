@@ -14,7 +14,6 @@ type ControlComponentData = {
   activePage: number;
   employee: Employee;
 }
-
 const List = () => {
 
   const [page, setPage] = useState<SpringPage<Employee>>();
@@ -50,11 +49,8 @@ const List = () => {
   useEffect(() => {
     getEmployees();
   }, [getEmployees]);
-
-  
-
   return (
-<>
+    <>
     {hasAnyRoles(['ROLE_ADMIN']) &&
       <Link to="/admin/employees/create">
         <button className="btn btn-primary text-white btn-crud-add">
